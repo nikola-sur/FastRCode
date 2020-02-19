@@ -6,7 +6,13 @@ output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE) # Might want to turn on warnings 
+
+my_pkgs <- c("knitr", "xtable", "bench", "ggbeeswarm", "profvis")
+need_pkgs <- my_pkgs[!(my_pkgs %in% installed.packages())]
+if (length(need_pkgs) > 0) {
+  install.packages(need_pkgs)
+}
 ```
 
 <!-- From https://stackoverflow.com/questions/42690955/how-to-insert-footnotes-in-ioslides-presentations-using-rmarkdown, Martin Schmelzer -->
@@ -61,6 +67,17 @@ What would you like to learn today?
 
 
 
+## Outline
+1. Why is R "slow"?
+
+2. Timing Your R Code
+
+3. Vectorization and Quick Fixes
+
+4. Advanced: Parallel Problems, Rcpp
+
+
+
 # Why is R "slow"?
 ## Why is R "slow"?
 [Insert funny picture here.]
@@ -100,5 +117,191 @@ Depending on the circumstances, we can use one of:
 - system.time()
 - utils::Rprof()
 - utils::summaryRprof()
+
+
+
+## bench::mark()
+Great for code that takes several nano or milliseconds to run
+
+Example: compare two "sqrt" functions
+
+
+
+## bench::mark() - Example
+```{r, echo=TRUE, results='hide'}
+library(bench)
+
+x <- runif(100)
+bm1 <- bench::mark(
+  x^0.5,
+  sqrt(x)
+)
+```
+
+
+
+## bench::mark() - Example
+```{r, echo=FALSE}
+bm1
+```
+
+
+
+## bench::mark() - Example
+```{r, echo=FALSE}
+plot(bm1)
+```
+
+
+
+## bench::mark() - Limitations
+Useful, but...
+
+Let's see what we can do with profvis()
+
+
+
+## profvis() - Example
+Consider the function
+```{r}
+f <- function() {
+  pause(0.1)
+  g()
+  h()
+}
+g <- function() {
+  pause(0.1)
+  h()
+}
+h <- function() {
+  pause(0.1)
+}
+```
+
+
+
+## profvis() - Example
+Let's "profile" the function, f(), using profvis().
+
+First, put f() in another file and then source that file.
+```{r}
+library(profvis)
+source("../Simple R Functions.R")
+profvis(f())
+```
+
+
+
+## profvis() - What Do We See?
+Flame graph: memory and time
+
+Call stack
+
+
+
+
+# Vectorization and Quick Fixes
+## Vectorization
+Don't think about elements of a vector
+
+- Think about the entire vector as a unit
+
+Loops in a vectorized function are in C
+
+- Less overhead --> faster in C
+
+
+
+## Vectorization - Example 1
+Add two numeric vectors together, element by element
+
+Non-vectorized version:
+```{r}
+vec1 <- 1:100
+vec2 <- 101:200
+vec3 <- numeric(100)
+
+add_vecs1 <- function(vec1, vec2) {
+  for (i in 1:length(vec1)) {
+    vec3[i] <- vec1[i] + vec2[i]
+  }
+  return(vec3)
+}
+```
+
+
+
+## Vectorization - Example 1
+Vectorized version:
+```{r}
+add_vecs2 <- function(vec1, vec2) {
+  vec3 <- vec1 + vec2
+  return(vec3)
+}
+```
+
+
+
+## Vectorization - Example 1
+How do the times compare?
+```{r}
+bm2 <- bench::mark(
+  add_vecs1(vec1, vec2),
+  add_vecs2(vec1, vec2)
+)
+bm2
+```
+
+
+
+## Vectorization - Problem #1
+The sample variance for observations $x_1, \ldots, x_n$ is
+\begin{equation*}
+  \frac{1}{n-1} \sum_{i=1}^n (x_i - \bar{x})^2,
+\end{equation*}
+where $\bar{x}$ is the sample average.
+
+<b>Problem 1:</b> Given a vector, "vec" with $n$ (numeric) observations, write a vectorized R function that returns the sample variance.
+
+<!-- Use the R code chunk below to answer the practice problem. -->
+```{r}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+<!-- Warning! A possible solution is below. Don't look if you want to try to solve the problem yourself! -->
+
+
+
+
+
+
+
+```{r}
+myvar <- function(vec) {
+  n <- length(vec)
+  return( 1/(n-1) * sum((vec - mean(vec))^2) )
+}
+myvar(1:10)
+var(1:10)
+```
 
 
