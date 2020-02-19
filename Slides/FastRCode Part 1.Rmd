@@ -2,7 +2,7 @@
 title: 'Let''s Make Your R Code FastR: Part1'
 author: "Nikola Surjanovic"
 date: "February 18, 2020"
-output: slidy_presentation
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
