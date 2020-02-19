@@ -1,7 +1,7 @@
 ---
 title: 'Let''s Make Your R Code FastR: Part1'
 author: "Nikola Surjanovic"
-date: "February 18, 2020"
+date: "Simon Fraser University"
 output: ioslides_presentation
 ---
 
@@ -9,22 +9,96 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+<!-- From https://stackoverflow.com/questions/42690955/how-to-insert-footnotes-in-ioslides-presentations-using-rmarkdown, Martin Schmelzer -->
+<style>
+div.footnotes {
+  position: absolute;
+  bottom: 0;
+  margin-bottom: 10px;
+  width: 80%;
+  font-size: 0.6em;
+}
+</style>
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+<script>
+  $(document).ready(function() {
+    $('slide:not(.backdrop):not(.title-slide)').append('<div class=\"footnotes\">');
 
-```{r cars}
-summary(cars)
-```
+    $('footnote').each(function(index) {
+      var text  = $(this).html();
+      var fnNum = (index+1).toString().sup();
+      $(this).html(text + fnNum);
 
-## Including Plots
+      var footnote   = fnNum + ': ' + $(this).attr('content') + '<br/>';
+      var oldContent = $(this).parents('slide').children('div.footnotes').html();
+      var newContent = oldContent + footnote;
+      $(this).parents('slide').children('div.footnotes').html(newContent);
+    });
+  });
+</script>
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+# Introductions
+## Introductions
+### About Me
+First-year Master's student studying Statistics  
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Research interests: machine learning, goodness-of-fit
+
+### How About You?
+
+
+
+## Why Are We Here?
+How experienced are you with R? 
+
+What would you like to learn today?  
+
+ - This is "Part 1", but we can cover more (or less)
+
+
+
+
+# Why is R "slow"?
+## Why is R "slow"?
+[Insert funny picture here.]
+
+
+
+## Why is R "slow"?
+Often, R is "fast enough"
+
+<footnote content="Hadley Wickham, Advanced R book, http://adv-r.had.co.nz/"> "The overriding concern for R-core is not to make R fast, but to build a stable platform for data analysis and statistics."</footnote>
+
+
+
+## Language vs. Implementation
+Difference between language and implementation
+
+Alternatives: pqR, Renjin, FastR, etc.
+
+
+
+
+# Timing Your R Code
+## Timing Your R Code
+Bottlenecks need to be identified
+
+Don't waste time optimizing code that is already fast enough
+
+
+
+
+## Profiling / Timing Code
+Depending on the circumstances, we can use one of:
+
+- <b>profvis()</b>
+- <b>bench::mark()</b>
+- microbenchmark()
+- system.time()
+- utils::Rprof()
+- utils::summaryRprof()
+
+
