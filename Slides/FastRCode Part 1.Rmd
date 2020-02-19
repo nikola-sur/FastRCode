@@ -256,9 +256,7 @@ bm2
 
 ## Vectorization - Problem #1
 The sample variance for observations $x_1, \ldots, x_n$ is
-\begin{equation*}
-  \frac{1}{n-1} \sum_{i=1}^n (x_i - \bar{x})^2,
-\end{equation*}
+$$  \frac{1}{n-1} \sum_{i=1}^n (x_i - \bar{x})^2, $$
 where $\bar{x}$ is the sample average.
 
 <b>Problem 1:</b> Given a vector, "vec" with $n$ (numeric) observations, write a vectorized R function that returns the sample variance.
@@ -293,8 +291,7 @@ where $\bar{x}$ is the sample average.
 
 
 
-
-
+## Vectorization - Problem #1 (Answer)
 ```{r}
 myvar <- function(vec) {
   n <- length(vec)
@@ -304,4 +301,81 @@ myvar(1:10)
 var(1:10)
 ```
 
+
+
+## Vectorization (Again)
+It is difficult to overemphasize vectorization in R!
+
+There is almost always a way to vectorize
+
+Useful functions: cumsum(), rowSums(), rowMeans(), etc.
+
+
+
+## Preallocation - Example
+This mistake can be seen (mostly out of carelessness)
+
+Not preallocating:
+```{r}
+makemat1 <- function(nrow, ncol, seed) {
+  set.seed(seed)
+  mymat <- rnorm(ncol, 0, 1)
+  for (i in 2:nrow) {
+    mymat <- rbind(mymat, rnorm(ncol, 0, 1))
+  }
+  return(unname(mymat))
+}
+```
+
+
+
+## Preallocation - Example
+Preallocating:
+```{r}
+makemat2 <- function(nrow, ncol, seed) {
+  set.seed(seed)
+  mymat <- matrix(NA, nrow=nrow, ncol=ncol)
+  for (i in 1:nrow) {
+    mymat[i, ] <- rnorm(ncol, 0, 1)
+  }
+  return(mymat)
+}
+```
+
+Even better:
+```{r}
+makemat3 <- function(nrow, ncol, seed) {
+  set.seed(seed)
+  mymat <- matrix(rnorm(nrow*ncol, 0, 1), nrow=nrow, ncol=ncol, byrow = TRUE)
+  return(mymat)
+}
+```
+
+
+
+## Preallocation - Example
+```{r}
+bm3 <- bench::mark(
+  makemat1(nrow=10,ncol=10,seed=9823),
+  makemat2(nrow=10,ncol=10,seed=9823),
+  makemat3(nrow=10,ncol=10,seed=9823)
+)
+bm3
+```
+
+
+
+## Preallocation - What's Happening?
+Basically, whenever possible, state how much "memory" you will use at the beginning
+
+Otherwise, R might be copying and moving your object around whenever you make a modification
+
+
+
+## Copy-on-Modify and Modify-in-Place
+Consider the following (somewhat surprising) example:
+```{r}
+X <- data.frame(matrix(rnorm(10000), ncol=3))
+medians <- vapply(X, median, numeric(1))
+```
 
