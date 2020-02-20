@@ -377,7 +377,7 @@ Otherwise, R might be copying and moving your object around whenever you make a 
 ## Copy-on-Modify and Modify-in-Place
 Consider the following (somewhat surprising) example:
 ```{r}
-X <- data.frame(matrix(rnorm(10000), ncol=3))
+X <- data.frame(matrix(rnorm(10000), ncol=4))
 medians <- vapply(X, median, numeric(1))
 
 cat(tracemem(X), "\n")
@@ -387,7 +387,7 @@ cat(tracemem(X), "\n")
 
 ## Copy-on-Modify and Modify-in-Place
 ```{r}
-for (i in 1:3) {
+for (i in 1:4) {
   X[[i]] <- X[[i]] - medians[[i]]
 }
 untracemem(X)
@@ -465,11 +465,34 @@ $\left(X (X^\top X)^{-1} X^\top \right) y$ versus $X \left((X^\top X)^{-1} \left
 
 
 
-## Useful Functions
+## Useful Functions - cumsum()
+Many times I've had to get a running total or average in a relatively large dataset
+
+cumsum() - cumulative sum
+
+Good to know it exists
+
+
+
+## Useful Data Structure - data.table
+data.table - alternative to data.frame
+
+Great for large datasets, subset, join, group, etc.
+
+Very, very fast!
 
 
 
 ## The Apply Family
+apply(), lapply(), sapply(), tapply()
+
+These are often for loops in disguise <i>(not just my opinion)</i>
+
+If you write your for loops well, "apply" functions are not always necessary
+
+- Preallocation, remove indexing variables
+
+Plus, you can then actually understand your code ;)
 
 
 
@@ -493,11 +516,22 @@ Problem #2
 Try to make your R code as fast as possible
 First, you must figure out what the code below is doing
 Then, rewrite the code in a separate code chunk and use system.time() to get an estimate
+This is a fake dataset of people's names, height, weight, and age
+  Units are not specified, since this is mostly imaginary (you might even see negative numbers)
 -->
 
 <!-- DO NOT try to make this part of the code faster!!!  -->
 ```{r problem2prep, echo=FALSE, results='hide'}
-
+# This is just me creating an artificial dataset
+# Don't try to optimize this part (although you probably could)
+top_names <- c("Liam", "Noah", "William", "James", "Oliver", "Benjamin", "Elijah", "Lucas",
+               "Emma", "Olivia", "Ava", "Isabella", "Sophia", "Charlotte", "Mia", "Amerlia") # From https://www.mother.ly/news/the-most-popular-baby-names-of-2018
+pop_size <- 10000
+set.seed(68176)
+people_df <- data.frame(Name=sample(top_names, replace=TRUE, size=pop_size),
+                        Height=rnorm(pop_size, mean=162, sd=20),
+                        Weight=rnorm(pop_size, mean=69, sd=28),
+                        Age=rnorm(pop_size, mean=47, sd=15))
 ```
 <!-- DO NOT try to make this part of the code faster!!!  -->
 
@@ -505,6 +539,18 @@ Then, rewrite the code in a separate code chunk and use system.time() to get an 
 <!-- DO try to make this part of the code faster!!!  -->
 ```{r problem2, echo=FALSE, results='hide'}
 # The original code
+liam_emma_df <- data.frame(matrix(NA, nrow=1, ncol=4))
+colnames(liam_emma_df) <- colnames(people_df)
+for (i in 1:nrow(people_df)) {
+  if ((people_df[i, "Name"] == "Liam") | (people_df[i, "Name"] == "Emma")) {
+    liam_emma_df <- rbind(liam_emma_df, people_df[i, ])
+  }
+}
+liam_emma_df <- liam_emma_df[-1, ]
+
+le_mat <- as.matrix(liam_emma_df[ , -1])
+le_negative <- le_mat[(le_mat[ , 1] < 0) | (le_mat[ , 2] < 0) | (le_mat[ , 3] < 0), ]
+le_means <- apply(le_mat, FUN=mean, MARGIN=1)
 ```
 <!-- DO try to make this part of the code faster!!!  -->
 
@@ -565,7 +611,12 @@ These topics were intended to be in Part 2 of the workshop (over the summer)
 
 
 # Advanced Topics: Parallel Computing in R
+## Available packages
+We can use one of the following packages:
 
+- "foreach" / "doParallel"
+
+- "parallel"
 
 
 
